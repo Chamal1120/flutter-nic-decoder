@@ -70,7 +70,7 @@ jobs:
         id: build_step
         run: |
           # Condition to check if build passes
-          if flutter build apk --release; then
+          if flutter build apk --release --split-per-abi; then
             echo "BUILD_STATUS=Passing" >> $GITHUB_ENV
             echo "BADGE_COLOR=green" >> $GITHUB_ENV
           else
@@ -79,12 +79,18 @@ jobs:
             exit 1
           fi
       - name: Rename APK with version
-        run: mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/nic-app-${{ github.ref_name }}.apk
-      - name: Upload APK artifact
+        run: mv build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk build/app/outputs/flutter-apk/nic-app-armabi-v7a${{ github.ref_name }}.apk
+        run: mv build/app/outputs/flutter-apk/app-arm64-v8a-release.apk build/app/outputs/flutter-apk/nic-app-arm64-v8a${{ github.ref_name }}.apk
+      - name: Upload arm APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-apk
-          path: build/app/outputs/flutter-apk/nic-app-${{ github.ref_name }}.apk
+          name: app-arm
+          path: build/app/outputs/flutter-apk/nic-app-armabi-v7a${{ github.ref_name }}.apk
+      - name: Upload arm64 APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-arm64
+          path: build/app/outputs/flutter-apk/nic-app-arm64-v8a${{ github.ref_name }}.apk
       - name: Generate Build Badge
         if: success() # Only generate badge if build passes
         run: |
@@ -110,10 +116,15 @@ jobs:
         with:
           fetch-depth: 0 # Fetch all history for tags
           ref: main
-      - name: Download APK artifact
+      - name: Download arm APK
         uses: actions/download-artifact@v4
         with:
-          name: app-release-apk
+          name: app-arm
+          path: release-assets/
+      - name: Download arm64 APK
+        uses: actions/download-artifact@v4
+        with:
+          name: app-arm64
           path: release-assets/
       - name: Generate Release Notes
         run: |
@@ -150,7 +161,7 @@ jobs:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
           body_path: release-assets/release-notes.md
-          files: release-assets/nic-app-${{ github.ref_name }}.apk
+          files: release-assets/*.apk
       - name: Update CHANGELOG.md
         run: |
           CHANGELOG_FILE="CHANGELOG.md"
