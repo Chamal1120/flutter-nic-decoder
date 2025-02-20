@@ -1,3 +1,9 @@
+## v0.1.3+1
+# What's new?
+
+## Fixes
+- Add leap years handling
+
 ## v0.1.2+6
 # What's new?
 
